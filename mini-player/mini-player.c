@@ -828,6 +828,9 @@ static int audio_thread(void *arg)
         return AVERROR(ENOMEM);
 
     do {
+		if (is->eof == 1)
+			break;
+
         if ((got_frame = decoder_decode_frame(&is->auddec, frame, NULL)) < 0)
             goto the_end;
 
@@ -1367,6 +1370,10 @@ static int read_thread(void *arg)
     for (;;) {
         if (is->abort_request)
             break;
+
+		if (is->eof == 1)
+			break;
+
         if (is->paused != is->last_paused) {
             is->last_paused = is->paused;
             if (is->paused)
@@ -1490,10 +1497,26 @@ fail:
 
 static void refresh_loop_wait_event(VideoState *is, SDL_Event *event) {
     double remaining_time = 0.0;
+	int64_t duration;
+	int secs = 0;
+
     SDL_PumpEvents();
     while (!SDL_PeepEvents(event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)) {
         if (remaining_time > 0.0)
             av_usleep((int64_t)(remaining_time * 1000000.0));
+
+		if (is->ic && !secs)
+		{
+			duration = is->ic->duration + (is->ic->duration <= INT64_MAX - 5000 ? 5000 : 0);
+			secs = duration / AV_TIME_BASE;
+			printf("duration: %lld, secs: %d\n", duration, secs);
+		}
+
+		if (is->eof == 1)
+		{
+			if ((int)(is->audio_clock + 0.5f) == secs)
+				break;
+		}
 
 		video_refresh(is, &remaining_time);
         remaining_time = REFRESH_RATE;
@@ -1508,6 +1531,9 @@ static void event_loop(VideoState *cur_stream)
 
     for (;;) {
         refresh_loop_wait_event(cur_stream, &event);
+
+		if (cur_stream->eof == 1)
+			break;
     }
 }
 
