@@ -1016,6 +1016,7 @@ static void sdl_audio_callback(void *opaque, Uint8 *stream, int len)
         len1 = is->audio_buf_size - is->audio_buf_index;
         if (len1 > len)
             len1 = len;
+
         if (!is->muted && is->audio_buf && is->audio_volume == SDL_MIX_MAXVOLUME)
             memcpy(stream, (uint8_t *)is->audio_buf + is->audio_buf_index, len1);
         else {
@@ -1035,6 +1036,19 @@ static void sdl_audio_callback(void *opaque, Uint8 *stream, int len)
     }
 }
 
+static void show_audio_spec(const char *name, SDL_AudioSpec *spec)
+{
+	printf("%s.freq: %d\n", name, spec->freq);
+	printf("%s.format: %d\n", name, spec->format);
+	printf("%s.channels: %d\n", name, spec->channels);
+	printf("%s.silence: %d\n", name, spec->silence);
+	printf("%s.samples: %d\n", name, spec->samples);
+	printf("%s.padding: %d\n", name, spec->padding);
+	printf("%s.size: %d\n", name, spec->size);
+	printf("%s.callback: 0x%p\n", name, spec->callback);
+	printf("%s.userdata: 0x%p\n", name, spec->userdata);
+}
+
 static int audio_open(void *opaque, int64_t wanted_channel_layout, int wanted_nb_channels, int wanted_sample_rate, struct AudioParams *audio_hw_params)
 {
     SDL_AudioSpec wanted_spec, spec;
@@ -1042,6 +1056,10 @@ static int audio_open(void *opaque, int64_t wanted_channel_layout, int wanted_nb
     static const int next_nb_channels[] = {0, 0, 1, 6, 2, 6, 4, 6};
     static const int next_sample_rates[] = {0, 44100, 48000, 96000, 192000};
     int next_sample_rate_idx = FF_ARRAY_ELEMS(next_sample_rates) - 1;
+
+	printf("wanted_channel_layout: %lld\n", wanted_channel_layout);
+	printf("wanted_nb_channels: %d\n", wanted_nb_channels);
+	printf("wanted_sample_rate: %d\n", wanted_sample_rate);
 
     env = SDL_getenv("SDL_AUDIO_CHANNELS");
     if (env) {
@@ -1066,6 +1084,7 @@ static int audio_open(void *opaque, int64_t wanted_channel_layout, int wanted_nb
     wanted_spec.samples = FFMAX(SDL_AUDIO_MIN_BUFFER_SIZE, 2 << av_log2(wanted_spec.freq / SDL_AUDIO_MAX_CALLBACKS_PER_SEC));
     wanted_spec.callback = sdl_audio_callback;
     wanted_spec.userdata = opaque;
+	show_audio_spec("wanted_spec", &wanted_spec);
     while (!(audio_dev = SDL_OpenAudioDevice(NULL, 0, &wanted_spec, &spec, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE))) {
         av_log(NULL, AV_LOG_WARNING, "SDL_OpenAudio (%d channels, %d Hz): %s\n",
                wanted_spec.channels, wanted_spec.freq, SDL_GetError());
@@ -1081,6 +1100,9 @@ static int audio_open(void *opaque, int64_t wanted_channel_layout, int wanted_nb
         }
         wanted_channel_layout = av_get_default_channel_layout(wanted_spec.channels);
     }
+
+	//show_audio_spec("wanted_spec", &wanted_spec);
+	show_audio_spec("spec", &spec);
     if (spec.format != AUDIO_S16SYS) {
         av_log(NULL, AV_LOG_ERROR,
                "SDL advised audio format %d is not supported!\n", spec.format);
