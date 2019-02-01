@@ -22,6 +22,7 @@ COMPILE_EXE = $(call COMPILE_EXECUTE,CC)
 
 $(PROGRAM) : $(PROGRAM).o
 	$(COMPILE_EXE)
+	cp $(PROGRAM) ../runtime
 
 %.o : %.c
 	$(COMPILE_C)
