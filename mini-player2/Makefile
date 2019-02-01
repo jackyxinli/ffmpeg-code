@@ -29,4 +29,4 @@ $(PROGRAM) : $(PROGRAM).o
 
 .PHONY: clean
 clean:
-	rm -rf *.o $(PROGRAM)
+	rm -rf *.o $(PROGRAM) ../runtime/$(PROGRAM)
