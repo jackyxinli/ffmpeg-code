@@ -66,7 +66,10 @@ static int audio_decode_frame()
 
 	ret = av_read_frame(ic, &pkt);
 	if (ret < 0)
+	{
+		eof = 1;
 		return -1;
+	}
 
 	ret = avcodec_send_packet(c, &pkt);
     if (ret < 0)
@@ -81,7 +84,6 @@ static int audio_decode_frame()
         ret = avcodec_receive_frame(c, &frame);
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
 		{
-			eof = (ret == AVERROR_EOF);
             return decode_size;
 		}
         else if (ret < 0)
