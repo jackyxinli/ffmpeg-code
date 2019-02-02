@@ -403,7 +403,9 @@ int main(int argc, char *argv[])
 		goto fail;
 
 	tid = SDL_CreateThread(audio_thread, "audio_thread", ic);
-	SDL_CondWait(cond, mutex);
+	// SDL_CondWait(cond, mutex);
+	SDL_WaitThread(tid, NULL);
+	printf("audio playback done.\n");
 
 fail:
 	if (mutex != NULL)
