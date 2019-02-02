@@ -380,8 +380,16 @@ static int audio_thread(void *arg)
 
 int main(int argc, char *argv[])
 {
-	const char *filename = "D:/Music/Count On Me.mp3";
+	const char *filename = NULL;
 	int err, i;
+
+	if (argc != 2)
+	{
+		printf("[INFO] %s <input_file>\n", argv[0]);
+		return -1;
+	}
+
+	filename = argv[1];
 
 #ifdef _WIN32
 	CoInitializeEx(NULL, COINIT_MULTITHREADED);
