@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
 
 	if (argc != 2)
 	{
-		printf("[INFO] %s <input_file>\n", argv[0]);
+		printf("\nmini-player2(A console player based on ffmpeg 4.1)\nUsage:\n\tmini-player2 <input file>\n\n", argv[0]);
 		return -1;
 	}
 
